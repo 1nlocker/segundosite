@@ -33,10 +33,17 @@ async function handleLogin(event) {
     event.preventDefault();
     
     const email = document.getElementById('email').value;
+    const telefone = document.getElementById('telefone').value;
     const password = document.getElementById('password').value;
     
     // Remove mensagens de erro anteriores
     limparMensagens();
+    
+    // Valida o telefone (formato brasileiro)
+    if (!validarTelefone(telefone)) {
+        mostrarMensagemErro('Número de telefone inválido. Use o formato (00) 00000-0000.');
+        return;
+    }
     
     try {
         // Tenta fazer login no Supabase
@@ -47,15 +54,22 @@ async function handleLogin(event) {
         
         if (error) throw error;
         
-        // Redireciona com base no tipo de usuário
+        // Verifica o telefone cadastrado
         const { data: userData, error: userError } = await supabase
             .from('usuarios')
-            .select('role')
+            .select('role, telefone')
             .eq('id', data.user.id)
             .single();
             
         if (userError) throw userError;
         
+        // Verifica se o telefone corresponde ao usuário
+        if (userData.telefone !== telefone) {
+            mostrarMensagemErro('O telefone informado não corresponde ao cadastrado para este usuário.');
+            return;
+        }
+        
+        // Redireciona com base no tipo de usuário
         if (userData.role === 'admin') {
             window.location.href = '../admin/dashboard.html';
         } else {
@@ -64,8 +78,15 @@ async function handleLogin(event) {
         
     } catch (error) {
         console.error('Erro ao fazer login:', error);
-        mostrarMensagemErro('Email ou senha incorretos. Tente novamente.');
+        mostrarMensagemErro('Email, telefone ou senha incorretos. Tente novamente.');
     }
+}
+
+// Função para validar telefone brasileiro
+function validarTelefone(telefone) {
+    // Formato esperado: (00) 00000-0000 ou (00) 0000-0000
+    const regexTelefone = /^\(\d{2}\) \d{4,5}-\d{4}$/;
+    return regexTelefone.test(telefone);
 }
 
 // Função para lidar com o login via Google
@@ -82,7 +103,11 @@ async function handleGoogleLogin() {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: redirectUrl
+                redirectTo: redirectUrl,
+                queryParams: {
+                    // Salvamos esta info para saber que precisamos solicitar telefone na callback
+                    requires_phone: 'true'
+                }
             }
         });
         
@@ -118,12 +143,25 @@ async function processOAuthCallback() {
             .eq('id', data.session.user.id)
             .single();
             
-        if (userError && userError.code === 'PGRST116') {
+        const isNewUser = userError && userError.code === 'PGRST116';
+        
+        const url = new URL(window.location.href);
+        const requiresPhone = url.searchParams.get('requires_phone') === 'true';
+        
+        // Se é novo usuário ou se requer telefone, solicita o telefone
+        if (isNewUser || requiresPhone) {
+            // Mostra um formulário para solicitar o telefone
+            mostrarFormularioTelefone(data.session.user);
+            return;
+        }
+            
+        if (isNewUser) {
             // Usuário não existe na tabela, então é novo
             const novoUsuario = {
                 id: data.session.user.id,
                 nome: data.session.user.user_metadata.full_name || data.session.user.email.split('@')[0],
                 email: data.session.user.email,
+                telefone: '', // Telefone vazio temporariamente
                 role: 'cliente',
                 created_at: new Date().toISOString()
             };
@@ -150,6 +188,93 @@ async function processOAuthCallback() {
     } else {
         window.location.href = '/pages/cliente/login.html';
     }
+}
+
+// Função para mostrar o formulário de telefone após login com Google
+function mostrarFormularioTelefone(user) {
+    // Esconde o loader
+    document.querySelector('.loader')?.remove();
+    
+    // Pega o container de autenticação
+    const authCard = document.querySelector('.auth-card');
+    
+    // Limpa o conteúdo atual
+    authCard.innerHTML = `
+        <h2>Complete seu cadastro</h2>
+        <p>Por favor, informe seu telefone para continuar:</p>
+        <form id="telefone-form">
+            <div class="form-group">
+                <label for="telefone">Telefone</label>
+                <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Continuar</button>
+            </div>
+        </form>
+    `;
+    
+    // Adiciona o evento de submit ao formulário
+    const telefoneForm = document.getElementById('telefone-form');
+    telefoneForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        const telefone = document.getElementById('telefone').value;
+        
+        // Valida o telefone
+        if (!validarTelefone(telefone)) {
+            mostrarMensagemErro('Número de telefone inválido. Use o formato (00) 00000-0000.');
+            return;
+        }
+        
+        try {
+            // Verifica se o usuário já existe na tabela usuarios
+            const { data: userData, error: userError } = await supabase
+                .from('usuarios')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+                
+            if (userError && userError.code === 'PGRST116') {
+                // Usuário não existe, insere
+                const { error: insertError } = await supabase
+                    .from('usuarios')
+                    .insert([{
+                        id: user.id,
+                        nome: user.user_metadata.full_name || user.email.split('@')[0],
+                        email: user.email,
+                        telefone: telefone,
+                        role: 'cliente',
+                        created_at: new Date().toISOString()
+                    }]);
+                    
+                if (insertError) throw insertError;
+            } else {
+                // Usuário existe, atualiza o telefone
+                const { error: updateError } = await supabase
+                    .from('usuarios')
+                    .update({ telefone: telefone })
+                    .eq('id', user.id);
+                    
+                if (updateError) throw updateError;
+            }
+            
+            // Redireciona com base no tipo de usuário
+            const { data: roleData, error: roleError } = await supabase
+                .from('usuarios')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+                
+            if (roleData?.role === 'admin') {
+                window.location.href = '/pages/admin/dashboard.html';
+            } else {
+                window.location.href = '/pages/cliente/painel.html';
+            }
+        } catch (error) {
+            console.error('Erro ao salvar telefone:', error);
+            mostrarMensagemErro('Erro ao salvar telefone. Por favor, tente novamente.');
+        }
+    });
 }
 
 // Função para lidar com o cadastro
