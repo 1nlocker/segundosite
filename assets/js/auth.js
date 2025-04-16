@@ -71,18 +71,31 @@ async function handleLogin(event) {
 // Função para lidar com o login via Google
 async function handleGoogleLogin() {
     try {
+        console.log("Iniciando login com Google...");
+        
+        // Mostrar um feedback visual para o usuário
+        mostrarMensagemSucesso("Redirecionando para autenticação do Google...");
+        
+        const redirectUrl = window.location.origin + '/pages/cliente/callback.html';
+        console.log("URL de redirecionamento:", redirectUrl);
+        
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin + '/pages/cliente/callback.html'
+                redirectTo: redirectUrl
             }
         });
         
-        if (error) throw error;
+        if (error) {
+            console.error("Erro detalhado:", error);
+            throw error;
+        }
+        
+        console.log("Resposta do login:", data);
         
     } catch (error) {
         console.error('Erro ao fazer login com Google:', error);
-        mostrarMensagemErro('Erro ao fazer login com Google. Tente novamente.');
+        mostrarMensagemErro('Erro ao fazer login com Google: ' + error.message);
     }
 }
 
