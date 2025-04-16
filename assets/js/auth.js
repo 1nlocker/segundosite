@@ -18,6 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
         recuperarSenhaForm.addEventListener('submit', handleRecuperarSenha);
     }
     
+    // Adiciona evento ao botão de login com Google
+    const googleLoginBtn = document.getElementById('google-login');
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener('click', handleGoogleLogin);
+    }
+    
     // Verifica se o usuário está logado em páginas protegidas
     verificarPaginaProtegida();
 });
@@ -59,6 +65,77 @@ async function handleLogin(event) {
     } catch (error) {
         console.error('Erro ao fazer login:', error);
         mostrarMensagemErro('Email ou senha incorretos. Tente novamente.');
+    }
+}
+
+// Função para lidar com o login via Google
+async function handleGoogleLogin() {
+    try {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + '/pages/cliente/callback.html'
+            }
+        });
+        
+        if (error) throw error;
+        
+    } catch (error) {
+        console.error('Erro ao fazer login com Google:', error);
+        mostrarMensagemErro('Erro ao fazer login com Google. Tente novamente.');
+    }
+}
+
+// Função para processar o login após redirecionamento do provedor OAuth
+async function processOAuthCallback() {
+    // Esta função será chamada na página de callback
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+        console.error('Erro ao processar autenticação:', error);
+        window.location.href = '/pages/cliente/login.html';
+        return;
+    }
+    
+    if (data?.session) {
+        // Verifica se é um novo usuário para salvar na tabela usuarios
+        const { data: userData, error: userError } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('id', data.session.user.id)
+            .single();
+            
+        if (userError && userError.code === 'PGRST116') {
+            // Usuário não existe na tabela, então é novo
+            const novoUsuario = {
+                id: data.session.user.id,
+                nome: data.session.user.user_metadata.full_name || data.session.user.email.split('@')[0],
+                email: data.session.user.email,
+                role: 'cliente',
+                created_at: new Date().toISOString()
+            };
+            
+            const { error: insertError } = await supabase
+                .from('usuarios')
+                .insert([novoUsuario]);
+                
+            if (insertError) console.error('Erro ao registrar usuário:', insertError);
+        }
+        
+        // Redireciona com base no tipo de usuário
+        const { data: roleData, error: roleError } = await supabase
+            .from('usuarios')
+            .select('role')
+            .eq('id', data.session.user.id)
+            .single();
+            
+        if (roleData?.role === 'admin') {
+            window.location.href = '/pages/admin/dashboard.html';
+        } else {
+            window.location.href = '/pages/cliente/painel.html';
+        }
+    } else {
+        window.location.href = '/pages/cliente/login.html';
     }
 }
 
@@ -146,79 +223,101 @@ async function handleRecuperarSenha(event) {
     }
 }
 
-// Verifica se o usuário está logado em páginas protegidas
+// Função para verificar se a página atual é protegida e requer autenticação
 async function verificarPaginaProtegida() {
-    // Lista de páginas que requerem autenticação
     const paginasProtegidas = [
-        'painel.html', 
-        'pedidos.html', 
-        'perfil.html'
+        '/pages/cliente/painel.html',
+        '/pages/admin/dashboard.html'
     ];
     
-    // Lista de páginas que requerem autenticação de admin
-    const paginasAdmin = [
-        'dashboard.html', 
-        'servicos-admin.html', 
-        'categorias.html', 
-        'pedidos-admin.html',
-        'usuarios.html'
-    ];
+    // Verifica se a página atual está na lista de páginas protegidas
+    const paginaAtual = window.location.pathname;
+    const ehPaginaProtegida = paginasProtegidas.some(pagina => paginaAtual.endsWith(pagina));
     
-    // Obtém o nome da página atual
-    const paginaAtual = window.location.pathname.split('/').pop();
-    
-    // Verifica se a página atual requer autenticação
-    if (paginasProtegidas.includes(paginaAtual) || paginasAdmin.includes(paginaAtual)) {
-        try {
-            const user = await verificarAutenticacao();
-            
-            // Se não estiver logado, redireciona para login
-            if (!user) {
-                redirecionarParaLogin();
-                return;
-            }
-            
-            // Para páginas de admin, verifica se o usuário é admin
-            if (paginasAdmin.includes(paginaAtual)) {
-                const isAdmin = await verificarAdmin(user.id);
-                
-                if (!isAdmin) {
-                    // Redireciona para painel do cliente se não for admin
-                    window.location.href = '../cliente/painel.html';
-                }
-            }
-        } catch (error) {
-            console.error('Erro ao verificar autenticação:', error);
+    if (ehPaginaProtegida) {
+        const user = await verificarAutenticacao();
+        
+        if (!user) {
+            // Usuário não está autenticado, redireciona para o login
             redirecionarParaLogin();
+            return;
+        }
+        
+        // Se for uma página de admin, verifica se o usuário é administrador
+        if (paginaAtual.includes('/admin/')) {
+            const ehAdmin = await verificarAdmin(user.id);
+            
+            if (!ehAdmin) {
+                // Usuário não é administrador, redireciona para o painel de cliente
+                window.location.href = '/pages/cliente/painel.html';
+            }
         }
     }
 }
 
-// Função para mostrar mensagem de erro no formulário
+// Função para mostrar mensagem de erro
 function mostrarMensagemErro(mensagem) {
-    const container = document.querySelector('.auth-card');
+    const messageContainer = document.querySelector('.message-container');
     
-    const msgElement = document.createElement('div');
-    msgElement.className = 'auth-message error';
-    msgElement.textContent = mensagem;
-    
-    // Insere no início do contêiner
-    container.insertBefore(msgElement, container.firstChild);
+    if (!messageContainer) {
+        // Cria o container de mensagem se não existir
+        const container = document.createElement('div');
+        container.className = 'message-container';
+        
+        const message = document.createElement('div');
+        message.className = 'message error';
+        message.textContent = mensagem;
+        
+        container.appendChild(message);
+        
+        // Adiciona o container antes do formulário
+        const form = document.querySelector('form');
+        form.parentNode.insertBefore(container, form);
+    } else {
+        // Atualiza o container existente
+        const message = document.createElement('div');
+        message.className = 'message error';
+        message.textContent = mensagem;
+        
+        messageContainer.innerHTML = '';
+        messageContainer.appendChild(message);
+    }
 }
 
-// Função para mostrar mensagem de sucesso no formulário
+// Função para mostrar mensagem de sucesso
 function mostrarMensagemSucesso(mensagem) {
-    const container = document.querySelector('.auth-card');
+    const messageContainer = document.querySelector('.message-container');
     
-    const msgElement = document.createElement('div');
-    msgElement.className = 'auth-message success';
-    msgElement.textContent = mensagem;
-    
-    // Insere no início do contêiner
-    container.insertBefore(msgElement, container.firstChild);
+    if (!messageContainer) {
+        // Cria o container de mensagem se não existir
+        const container = document.createElement('div');
+        container.className = 'message-container';
+        
+        const message = document.createElement('div');
+        message.className = 'message success';
+        message.textContent = mensagem;
+        
+        container.appendChild(message);
+        
+        // Adiciona o container antes do formulário
+        const form = document.querySelector('form');
+        form.parentNode.insertBefore(container, form);
+    } else {
+        // Atualiza o container existente
+        const message = document.createElement('div');
+        message.className = 'message success';
+        message.textContent = mensagem;
+        
+        messageContainer.innerHTML = '';
+        messageContainer.appendChild(message);
+    }
 }
 
 // Função para limpar mensagens
 function limparMensagens() {
-    document.querySelectorAll('.auth-message').forEach(msg => msg.remove());
+    const messageContainer = document.querySelector('.message-container');
+    
+    if (messageContainer) {
+        messageContainer.innerHTML = '';
+    }
 } 
