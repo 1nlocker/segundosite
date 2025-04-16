@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Desbloqueio de Celular</title>
+    <link rel="stylesheet" href="./assets/css/styles.css">
+    <link rel="icon" type="image/png" href="./assets/images/favicon.png">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <h1>Desbloqueio Celular</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="./pages/servicos.html">Serviços</a></li>
+                    <li><a href="./pages/contato.html">Contato</a></li>
+                    <li><a href="./pages/cliente/login.html" class="btn-login">Área do Cliente</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h2>Desbloqueie seu celular com facilidade e segurança!</h2>
+                <p>Oferecemos soluções para diversos tipos de bloqueios, incluindo BLACKLIST, ICLOUD e BYPASS.</p>
+                <a href="./pages/servicos.html" class="btn-primary">Ver serviços</a>
+            </div>
+        </section>
+
+        <section class="servicos-destaque">
+            <div class="container">
+                <h2>Serviços em destaque</h2>
+                <div id="servicos-favoritos" class="servicos-grid">
+                    <!-- Serviços favoritos serão carregados dinamicamente aqui -->
+                    <p class="loading">Carregando serviços...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Portal de Desbloqueio de Celular. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./assets/js/config.js"></script>
+    <script src="./assets/js/main.js"></script>
+</body>
+</html> 
