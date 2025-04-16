@@ -116,6 +116,46 @@
     text-decoration: underline;
 }
 
+/* Social Login */
+.social-login {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.btn-social:hover {
+    background-color: #f8f8f8;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-social.github {
+    background-color: #24292e;
+    color: white;
+    border-color: #24292e;
+}
+
+.btn-social.github:hover {
+    background-color: #2c3338;
+}
+
+.btn-social.github i {
+    font-size: 1.2rem;
+}
+
 .form-error {
     color: #e74c3c;
     font-size: 14px;

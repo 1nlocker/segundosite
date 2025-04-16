@@ -31,6 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
         googleLoginBtn.addEventListener('click', handleGoogleLogin);
     }
     
+    // Adiciona evento ao botão de login com GitHub
+    const githubLoginBtn = document.getElementById('github-login');
+    if (githubLoginBtn) {
+        githubLoginBtn.addEventListener('click', handleGithubLogin);
+    }
+    
     // Verifica se o usuário está logado em páginas protegidas
     verificarPaginaProtegida();
 });
@@ -158,6 +164,41 @@ async function handleGoogleLogin() {
     } catch (error) {
         console.error('Erro ao fazer login com Google:', error);
         mostrarMensagemErro('Erro ao fazer login com Google: ' + error.message);
+    }
+}
+
+// Função para lidar com o login via GitHub
+async function handleGithubLogin() {
+    try {
+        console.log("Iniciando login com GitHub...");
+        
+        // Mostrar um feedback visual para o usuário
+        mostrarMensagemSucesso("Redirecionando para autenticação do GitHub...");
+        
+        const redirectUrl = window.location.origin + '/pages/cliente/callback.html';
+        console.log("URL de redirecionamento:", redirectUrl);
+        
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'github',
+            options: {
+                redirectTo: redirectUrl,
+                queryParams: {
+                    // Salvamos esta info para saber que precisamos solicitar telefone na callback
+                    requires_phone: 'true'
+                }
+            }
+        });
+        
+        if (error) {
+            console.error("Erro detalhado:", error);
+            throw error;
+        }
+        
+        console.log("Resposta do login:", data);
+        
+    } catch (error) {
+        console.error('Erro ao fazer login com GitHub:', error);
+        mostrarMensagemErro('Erro ao fazer login com GitHub: ' + error.message);
     }
 }
 
