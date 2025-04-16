@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Conta - Portal de Desbloqueio de Celular</title>
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    <link rel="stylesheet" href="../../assets/css/cliente.css">
+    <link rel="icon" type="image/png" href="../../assets/images/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <h1><a href="../../index.html">Desbloqueio Celular</a></h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="../../index.html">Início</a></li>
+                    <li><a href="../servicos.html">Serviços</a></li>
+                    <li><a href="../contato.html">Contato</a></li>
+                    <li><a href="#" id="logout-btn" class="btn-login">Sair</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="cliente-painel">
+        <div class="container">
+            <div class="cliente-header">
+                <h1>Minha Conta</h1>
+                <p>Bem-vindo(a), <span id="cliente-nome">Carregando...</span></p>
+            </div>
+
+            <div class="cliente-grid">
+                <div class="cliente-sidebar">
+                    <div class="cliente-info-card">
+                        <h3>Meus Dados</h3>
+                        <div class="cliente-info">
+                            <p><strong>Nome:</strong> <span id="info-nome">Carregando...</span></p>
+                            <p><strong>E-mail:</strong> <span id="info-email">Carregando...</span></p>
+                            <p><strong>Telefone:</strong> <span id="info-telefone">Carregando...</span></p>
+                        </div>
+                        <button id="btn-atualizar-dados" class="btn-primario">Atualizar Dados</button>
+                    </div>
+
+                    <div class="menu-navegacao">
+                        <ul>
+                            <li class="active"><a href="#visao-geral">Visão Geral</a></li>
+                            <li><a href="#pedidos">Meus Pedidos</a></li>
+                            <li><a href="../servicos.html">Solicitar Serviço</a></li>
+                            <li><a href="../contato.html">Suporte</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="cliente-content">
+                    <section id="visao-geral" class="section-ativa">
+                        <div class="card-destaque">
+                            <h2>Resumo</h2>
+                            <div class="resumo-cards">
+                                <div class="resumo-card">
+                                    <h3>Pedidos em Andamento</h3>
+                                    <p class="numero-destaque" id="resumo-andamento">0</p>
+                                </div>
+                                <div class="resumo-card">
+                                    <h3>Pedidos Concluídos</h3>
+                                    <p class="numero-destaque" id="resumo-concluidos">0</p>
+                                </div>
+                                <div class="resumo-card">
+                                    <h3>Total Gasto</h3>
+                                    <p class="numero-destaque" id="resumo-gasto">R$ 0,00</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-destaque">
+                            <h2>Pedidos Recentes</h2>
+                            <div class="table-responsive">
+                                <table class="cliente-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Serviço</th>
+                                            <th>Status</th>
+                                            <th>Data</th>
+                                            <th>Valor</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pedidos-recentes">
+                                        <tr>
+                                            <td colspan="5" class="loading-data">Carregando pedidos recentes...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button id="btn-ver-todos" class="btn-secundario">Ver Todos</button>
+                        </div>
+                    </section>
+                    
+                    <section id="pedidos" class="section-inativa">
+                        <div class="card-destaque">
+                            <h2>Meus Pedidos</h2>
+                            <div class="filtro-pedidos">
+                                <label for="filtro-status">Filtrar por status:</label>
+                                <select id="filtro-status">
+                                    <option value="todos">Todos</option>
+                                    <option value="pendente">Pendente</option>
+                                    <option value="processando">Processando</option>
+                                    <option value="concluido">Concluído</option>
+                                    <option value="cancelado">Cancelado</option>
+                                </select>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="cliente-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Serviço</th>
+                                            <th>Status</th>
+                                            <th>Data</th>
+                                            <th>Valor</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pedidos-todos">
+                                        <tr>
+                                            <td colspan="6" class="loading-data">Carregando pedidos...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Detalhes do Pedido -->
+    <div id="modal-pedido" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Detalhes do Pedido</h2>
+            <div id="pedido-detalhes">
+                <!-- Conteúdo carregado via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Atualizar Dados -->
+    <div id="modal-atualizar-dados" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Atualizar Dados</h2>
+            <form id="form-atualizar-dados">
+                <div class="form-grupo">
+                    <label for="atualizar-nome">Nome</label>
+                    <input type="text" id="atualizar-nome" name="nome" required>
+                </div>
+                <div class="form-grupo">
+                    <label for="atualizar-telefone">Telefone</label>
+                    <input type="tel" id="atualizar-telefone" name="telefone" pattern="\(\d{2}\) \d{5}-\d{4}" placeholder="(99) 99999-9999" required>
+                </div>
+                <div class="form-acoes">
+                    <button type="submit" class="btn-primario">Salvar</button>
+                    <button type="button" class="btn-secundario close-modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mensagens flutuantes -->
+    <div id="mensagem-flutuante" class="mensagem-flutuante" style="display: none;"></div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Portal de Desbloqueio de Celular. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/@supabase/supabase-js"></script>
+    <script src="../../assets/js/config.js"></script>
+    <script type="module" src="../../assets/js/cliente.js"></script>
+</body>
+</html> 

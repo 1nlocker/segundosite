@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Cliente - Desbloqueio de Celulares</title>
+    <link rel="stylesheet" href="assets/css/cliente.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="cliente-painel">
+        <!-- Sidebar -->
+        <aside class="cliente-sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="assets/images/logo.png" alt="Logo Desbloqueio de Celulares">
+                </div>
+            </div>
+
+            <div class="usuario-info">
+                <div class="usuario-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="usuario-detalhes">
+                    <h3 class="usuario-nome">Carregando...</h3>
+                    <p class="usuario-email">Carregando...</p>
+                    <p class="usuario-telefone"></p>
+                </div>
+            </div>
+
+            <nav class="menu-navegacao">
+                <ul>
+                    <li>
+                        <a href="#" data-section="dashboard">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="pedidos-pendentes">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Pedidos Pendentes</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="historico-pedidos">
+                            <i class="fas fa-history"></i>
+                            <span>Histórico de Pedidos</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="perfil">
+                            <i class="fas fa-user"></i>
+                            <span>Meu Perfil</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="cliente-conteudo">
+            <header class="cliente-header">
+                <div class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <div class="header-titulo">
+                    <h1>Painel do Cliente</h1>
+                </div>
+                <div class="header-acoes">
+                    <a href="/" class="btn-voltar">
+                        <i class="fas fa-home"></i>
+                        <span>Voltar ao Site</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Dashboard -->
+            <section id="dashboard" class="cliente-section section-ativa">
+                <div class="section-header">
+                    <h2>Dashboard</h2>
+                </div>
+                
+                <div class="cards-container">
+                    <div class="info-card">
+                        <div class="info-card-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="info-card-content">
+                            <h3>Total de Pedidos</h3>
+                            <p class="total-pedidos">0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-card-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="info-card-content">
+                            <h3>Pedidos Pendentes</h3>
+                            <p class="pedidos-pendentes">0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-card-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="info-card-content">
+                            <h3>Pedidos Concluídos</h3>
+                            <p class="pedidos-concluidos">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-content">
+                    <div class="ultimos-pedidos">
+                        <h3>Últimos Pedidos</h3>
+                        <div class="tabela-container">
+                            <table id="ultimos-pedidos-tabela">
+                                <thead>
+                                    <tr>
+                                        <th>#ID</th>
+                                        <th>Serviço</th>
+                                        <th>Valor</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Inserido dinamicamente via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pedidos Pendentes -->
+            <section id="pedidos-pendentes" class="cliente-section section-inativa">
+                <div class="section-header">
+                    <h2>Pedidos Pendentes</h2>
+                </div>
+                
+                <div class="section-content">
+                    <div class="tabela-container">
+                        <table id="pedidos-pendentes-tabela">
+                            <thead>
+                                <tr>
+                                    <th>#ID</th>
+                                    <th>Serviço</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Inserido dinamicamente via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Histórico de Pedidos -->
+            <section id="historico-pedidos" class="cliente-section section-inativa">
+                <div class="section-header">
+                    <h2>Histórico de Pedidos</h2>
+                </div>
+                
+                <div class="section-content">
+                    <div class="tabela-filtros">
+                        <div class="filtro-grupo">
+                            <label for="filtro-status">Status:</label>
+                            <select id="filtro-status">
+                                <option value="todos">Todos</option>
+                                <option value="concluido">Concluídos</option>
+                                <option value="cancelado">Cancelados</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filtro-grupo">
+                            <label for="filtro-data">Período:</label>
+                            <select id="filtro-data">
+                                <option value="todos">Todos</option>
+                                <option value="7dias">Últimos 7 dias</option>
+                                <option value="30dias">Últimos 30 dias</option>
+                                <option value="90dias">Últimos 90 dias</option>
+                            </select>
+                        </div>
+                        
+                        <button id="aplicar-filtros" class="btn-primario">
+                            <i class="fas fa-filter"></i>
+                            Aplicar Filtros
+                        </button>
+                    </div>
+                    
+                    <div class="tabela-container">
+                        <table id="historico-pedidos-tabela">
+                            <thead>
+                                <tr>
+                                    <th>#ID</th>
+                                    <th>Serviço</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Inserido dinamicamente via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Perfil do Usuário -->
+            <section id="perfil" class="cliente-section section-inativa">
+                <div class="section-header">
+                    <h2>Meu Perfil</h2>
+                </div>
+                
+                <div class="section-content">
+                    <div class="perfil-card">
+                        <div class="perfil-header">
+                            <div class="perfil-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="perfil-info">
+                                <h3 class="usuario-nome">Carregando...</h3>
+                                <p class="usuario-email">Carregando...</p>
+                                <p class="usuario-telefone"></p>
+                            </div>
+                            <button class="btn-primario btn-editar-perfil">
+                                <i class="fas fa-edit"></i>
+                                Editar Perfil
+                            </button>
+                        </div>
+                        
+                        <div class="perfil-seguranca">
+                            <h3>Segurança da Conta</h3>
+                            <div class="perfil-item">
+                                <div class="perfil-label">
+                                    <i class="fas fa-key"></i>
+                                    <span>Senha</span>
+                                </div>
+                                <div class="perfil-valor">
+                                    <span>••••••••</span>
+                                    <button class="btn-pequeno btn-alterar-senha">
+                                        <i class="fas fa-edit"></i>
+                                        Alterar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modais -->
+    <!-- Modal de Detalhes do Pedido -->
+    <div id="detalhes-pedido-modal" class="modal">
+        <div class="modal-conteudo">
+            <div class="modal-header">
+                <h3>Detalhes do Pedido</h3>
+                <button class="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="detalhe-item">
+                    <div class="detalhe-label">ID do Pedido:</div>
+                    <div class="detalhe-valor pedido-id"></div>
+                </div>
+                <div class="detalhe-item">
+                    <div class="detalhe-label">Serviço:</div>
+                    <div class="detalhe-valor pedido-servico"></div>
+                </div>
+                <div class="detalhe-item">
+                    <div class="detalhe-label">Valor:</div>
+                    <div class="detalhe-valor pedido-preco"></div>
+                </div>
+                <div class="detalhe-item">
+                    <div class="detalhe-label">Status:</div>
+                    <div class="detalhe-valor pedido-status"></div>
+                </div>
+                <div class="detalhe-item">
+                    <div class="detalhe-label">Data de Criação:</div>
+                    <div class="detalhe-valor pedido-data-criacao"></div>
+                </div>
+                <div class="detalhe-item">
+                    <div class="detalhe-label">Última Atualização:</div>
+                    <div class="detalhe-valor pedido-data-atualizacao"></div>
+                </div>
+                
+                <div class="detalhe-secao">
+                    <h4>Informações Adicionais</h4>
+                    <div class="pedido-info-adicional">
+                        <!-- Inserido dinamicamente via JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secundario close-modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Perfil -->
+    <div id="editar-perfil-modal" class="modal">
+        <div class="modal-conteudo">
+            <div class="modal-header">
+                <h3>Editar Perfil</h3>
+                <button class="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-editar-perfil">
+                    <div class="form-group">
+                        <label for="editar-nome">Nome</label>
+                        <input type="text" id="editar-nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editar-email">Email</label>
+                        <input type="email" id="editar-email" disabled>
+                        <small>O email não pode ser alterado.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="editar-telefone">Telefone</label>
+                        <input type="tel" id="editar-telefone">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secundario close-modal">Cancelar</button>
+                        <button type="submit" class="btn-primario">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Alteração de Senha -->
+    <div id="alterar-senha-modal" class="modal">
+        <div class="modal-conteudo">
+            <div class="modal-header">
+                <h3>Alterar Senha</h3>
+                <button class="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-alterar-senha">
+                    <div class="form-group">
+                        <label for="senha-atual">Senha Atual</label>
+                        <input type="password" id="senha-atual" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nova-senha">Nova Senha</label>
+                        <input type="password" id="nova-senha" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmar-senha">Confirmar Nova Senha</label>
+                        <input type="password" id="confirmar-senha" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secundario close-modal">Cancelar</button>
+                        <button type="submit" class="btn-primario">Atualizar Senha</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="assets/js/cliente.js"></script>
+</body>
+</html> 
