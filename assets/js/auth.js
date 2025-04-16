@@ -1,3 +1,10 @@
+// Importando configurações e funções do Supabase
+import { SUPABASE_URL, SUPABASE_KEY, verificarAutenticacao, verificarAdmin, redirecionarParaLogin } from './config.js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+// Inicializando o cliente Supabase
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // Aguarda o carregamento do DOM
 document.addEventListener('DOMContentLoaded', () => {
     // Se estiver na página de login
@@ -125,7 +132,7 @@ async function handleGoogleLogin() {
 }
 
 // Função para processar o login após redirecionamento do provedor OAuth
-async function processOAuthCallback() {
+export async function processOAuthCallback() {
     // Esta função será chamada na página de callback
     const { data, error } = await supabase.auth.getSession();
     
@@ -395,60 +402,77 @@ async function verificarPaginaProtegida() {
 
 // Função para mostrar mensagem de erro
 function mostrarMensagemErro(mensagem) {
-    const messageContainer = document.querySelector('.message-container');
-    
-    if (!messageContainer) {
-        // Cria o container de mensagem se não existir
-        const container = document.createElement('div');
-        container.className = 'message-container';
-        
-        const message = document.createElement('div');
-        message.className = 'message error';
-        message.textContent = mensagem;
-        
-        container.appendChild(message);
-        
-        // Adiciona o container antes do formulário
-        const form = document.querySelector('form');
-        form.parentNode.insertBefore(container, form);
-    } else {
-        // Atualiza o container existente
-        const message = document.createElement('div');
-        message.className = 'message error';
-        message.textContent = mensagem;
-        
-        messageContainer.innerHTML = '';
-        messageContainer.appendChild(message);
-    }
+    mostrarMensagem(mensagem, 'erro');
 }
 
 // Função para mostrar mensagem de sucesso
 function mostrarMensagemSucesso(mensagem) {
-    const messageContainer = document.querySelector('.message-container');
+    mostrarMensagem(mensagem, 'sucesso');
+}
+
+// Função para mostrar mensagem
+function mostrarMensagem(mensagem, tipo = 'info', tempo = 5000) {
+    // Criar elemento de mensagem se não existir
+    let mensagemEl = document.getElementById('mensagem-flutuante');
     
-    if (!messageContainer) {
-        // Cria o container de mensagem se não existir
-        const container = document.createElement('div');
-        container.className = 'message-container';
-        
-        const message = document.createElement('div');
-        message.className = 'message success';
-        message.textContent = mensagem;
-        
-        container.appendChild(message);
-        
-        // Adiciona o container antes do formulário
-        const form = document.querySelector('form');
-        form.parentNode.insertBefore(container, form);
-    } else {
-        // Atualiza o container existente
-        const message = document.createElement('div');
-        message.className = 'message success';
-        message.textContent = mensagem;
-        
-        messageContainer.innerHTML = '';
-        messageContainer.appendChild(message);
+    if (!mensagemEl) {
+        mensagemEl = document.createElement('div');
+        mensagemEl.id = 'mensagem-flutuante';
+        document.body.appendChild(mensagemEl);
     }
+    
+    // Definir ícone baseado no tipo
+    let icone = '';
+    switch (tipo) {
+        case 'sucesso':
+            icone = '<i class="fas fa-check-circle"></i>';
+            break;
+        case 'erro':
+            icone = '<i class="fas fa-exclamation-circle"></i>';
+            break;
+        case 'alerta':
+            icone = '<i class="fas fa-exclamation-triangle"></i>';
+            break;
+        default: // info
+            icone = '<i class="fas fa-info-circle"></i>';
+            break;
+    }
+    
+    // Atualizar conteúdo e classe
+    mensagemEl.innerHTML = `${icone} <span>${mensagem}</span>`;
+    mensagemEl.className = `mensagem-flutuante ${tipo}`;
+    mensagemEl.style.display = 'flex';
+    
+    // Botão para fechar
+    const btnFechar = document.createElement('button');
+    btnFechar.className = 'btn-fechar-mensagem';
+    btnFechar.innerHTML = '&times;';
+    btnFechar.addEventListener('click', () => {
+        mensagemEl.style.opacity = '0';
+        setTimeout(() => {
+            mensagemEl.style.display = 'none';
+        }, 300);
+    });
+    mensagemEl.appendChild(btnFechar);
+    
+    // Resetar animação anterior se existir
+    clearTimeout(mensagemEl.timeoutId);
+    mensagemEl.style.opacity = '0';
+    
+    // Animar aparecimento
+    setTimeout(() => {
+        mensagemEl.style.opacity = '1';
+        
+        // Configurar desaparecimento após o tempo definido
+        mensagemEl.timeoutId = setTimeout(() => {
+            mensagemEl.style.opacity = '0';
+            
+            // Ocultar completamente após a transição
+            setTimeout(() => {
+                mensagemEl.style.display = 'none';
+            }, 300);
+        }, tempo);
+    }, 100);
 }
 
 // Função para limpar mensagens

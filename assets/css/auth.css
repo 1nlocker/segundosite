@@ -144,4 +144,79 @@
         align-items: center;
         gap: 10px;
     }
+}
+
+/* Mensagem flutuante */
+.mensagem-flutuante {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    max-width: 400px;
+    min-width: 300px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.mensagem-flutuante.info {
+    background-color: #6366F1;
+    color: white;
+    border-left: 5px solid #4F46E5;
+}
+
+.mensagem-flutuante.sucesso {
+    background-color: #10B981;
+    color: white;
+    border-left: 5px solid #047857;
+}
+
+.mensagem-flutuante.erro {
+    background-color: #EF4444;
+    color: white;
+    border-left: 5px solid #B91C1C;
+}
+
+.mensagem-flutuante.alerta {
+    background-color: #F59E0B;
+    color: white;
+    border-left: 5px solid #B45309;
+}
+
+.mensagem-flutuante i {
+    font-size: 1.5rem;
+    margin-right: 8px;
+}
+
+.mensagem-flutuante span {
+    flex: 1;
+}
+
+.btn-fechar-mensagem {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    padding: 0;
+    margin-left: 8px;
+}
+
+.btn-fechar-mensagem:hover {
+    opacity: 1;
 } 

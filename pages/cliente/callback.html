@@ -6,6 +6,7 @@
     <title>Autenticando... | Portal de Desbloqueio</title>
     <link rel="stylesheet" href="../../assets/css/styles.css">
     <link rel="stylesheet" href="../../assets/css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <header>
@@ -35,16 +36,19 @@
         </section>
     </main>
     
+    <!-- Mensagens flutuantes -->
+    <div id="mensagem-flutuante" class="mensagem-flutuante" style="display: none;"></div>
+    
     <footer>
         <div class="container">
             <p>&copy; 2023 Portal de Desbloqueio de Celular. Todos os direitos reservados.</p>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../../assets/js/config.js"></script>
-    <script src="../../assets/js/auth.js"></script>
-    <script>
+    <script src="https://unpkg.com/@supabase/supabase-js"></script>
+    <script type="module">
+        import { processOAuthCallback } from "../../assets/js/auth.js";
+        
         document.addEventListener('DOMContentLoaded', () => {
             processOAuthCallback();
         });
