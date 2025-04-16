@@ -40,13 +40,16 @@ async function handleLogin(event) {
     event.preventDefault();
     
     const email = document.getElementById('email').value;
-    const telefone = document.getElementById('telefone').value;
+    let telefone = document.getElementById('telefone').value;
     const password = document.getElementById('password').value;
     
     // Remove mensagens de erro anteriores
     limparMensagens();
     
-    // Valida o telefone (formato brasileiro)
+    // Formata o telefone para o padrão (00) 00000-0000
+    telefone = formatarTelefone(telefone);
+    
+    // Valida o telefone
     if (!validarTelefone(telefone)) {
         mostrarMensagemErro('Número de telefone inválido. Use o formato (00) 00000-0000.');
         return;
@@ -70,8 +73,11 @@ async function handleLogin(event) {
             
         if (userError) throw userError;
         
-        // Verifica se o telefone corresponde ao usuário
-        if (userData.telefone !== telefone) {
+        // Formata o telefone do banco para comparar
+        const telefoneBanco = formatarTelefone(userData.telefone);
+        
+        // Verifica se o telefone corresponde ao usuário (após formatação)
+        if (telefoneBanco !== telefone) {
             mostrarMensagemErro('O telefone informado não corresponde ao cadastrado para este usuário.');
             return;
         }
@@ -89,11 +95,35 @@ async function handleLogin(event) {
     }
 }
 
-// Função para validar telefone brasileiro
+// Função para validar telefone brasileiro (aceita vários formatos)
 function validarTelefone(telefone) {
-    // Formato esperado: (00) 00000-0000 ou (00) 0000-0000
-    const regexTelefone = /^\(\d{2}\) \d{4,5}-\d{4}$/;
-    return regexTelefone.test(telefone);
+    // Remove espaços em branco, parênteses, traços e outros caracteres especiais
+    const numeroLimpo = telefone.replace(/\D/g, '');
+    
+    // Verifica se o número tem entre 10 e 11 dígitos (com ou sem DDD)
+    if (numeroLimpo.length < 10 || numeroLimpo.length > 11) {
+        return false;
+    }
+    
+    return true;
+}
+
+// Função para formatar o telefone no padrão (00) 00000-0000 ou (00) 0000-0000
+function formatarTelefone(telefone) {
+    // Remove todos os caracteres não numéricos
+    const numeroLimpo = telefone.replace(/\D/g, '');
+    
+    // Se o telefone não tiver o tamanho adequado, retorna o original
+    if (numeroLimpo.length < 10 || numeroLimpo.length > 11) {
+        return telefone;
+    }
+    
+    // Formata para (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+    if (numeroLimpo.length === 11) {
+        return `(${numeroLimpo.substring(0, 2)}) ${numeroLimpo.substring(2, 7)}-${numeroLimpo.substring(7)}`;
+    } else {
+        return `(${numeroLimpo.substring(0, 2)}) ${numeroLimpo.substring(2, 6)}-${numeroLimpo.substring(6)}`;
+    }
 }
 
 // Função para lidar com o login via Google
@@ -213,6 +243,7 @@ function mostrarFormularioTelefone(user) {
             <div class="form-group">
                 <label for="telefone">Telefone</label>
                 <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" required>
+                <small class="form-hint">Formatos aceitos: 00000000000, (00) 00000-0000, 00 00000-0000</small>
             </div>
             <div class="form-actions">
                 <button type="submit" class="btn-primary">Continuar</button>
@@ -225,11 +256,14 @@ function mostrarFormularioTelefone(user) {
     telefoneForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         
-        const telefone = document.getElementById('telefone').value;
+        let telefone = document.getElementById('telefone').value;
+        
+        // Formata o telefone
+        telefone = formatarTelefone(telefone);
         
         // Valida o telefone
         if (!validarTelefone(telefone)) {
-            mostrarMensagemErro('Número de telefone inválido. Use o formato (00) 00000-0000.');
+            mostrarMensagemErro('Número de telefone inválido. O número deve ter entre 10 e 11 dígitos incluindo DDD.');
             return;
         }
         
@@ -290,12 +324,21 @@ async function handleCadastro(event) {
     
     const nome = document.getElementById('nome').value;
     const email = document.getElementById('email').value;
-    const telefone = document.getElementById('telefone').value;
+    let telefone = document.getElementById('telefone').value;
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirm-password').value;
     
     // Remove mensagens de erro anteriores
     limparMensagens();
+    
+    // Formata o telefone
+    telefone = formatarTelefone(telefone);
+    
+    // Valida o telefone
+    if (!validarTelefone(telefone)) {
+        mostrarMensagemErro('Número de telefone inválido. O número deve ter entre 10 e 11 dígitos incluindo DDD.');
+        return;
+    }
     
     // Verifica se as senhas conferem
     if (password !== confirmPassword) {
