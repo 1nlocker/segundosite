@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Desbloqueio - Modo Offline</title>
+    <link rel="icon" href="assets/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .offline-container {
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .offline-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #6c757d;
+        }
+        
+        .offline-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #343a40;
+        }
+        
+        .offline-message {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            color: #495057;
+        }
+        
+        .retry-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .retry-button:hover {
+            background-color: #0069d9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Portal de Desbloqueio de Celulares</h1>
+        </header>
+        
+        <div class="offline-container">
+            <div class="offline-icon">📶</div>
+            <h2 class="offline-title">Você está offline</h2>
+            <p class="offline-message">
+                Não foi possível estabelecer conexão com a internet. 
+                Algumas funcionalidades podem estar indisponíveis até que a conexão seja restabelecida.
+            </p>
+            <p class="offline-message">
+                Caso já tenha se autenticado anteriormente, você ainda poderá acessar algumas informações em modo offline.
+            </p>
+            <button class="retry-button" onclick="window.location.reload()">
+                Tentar novamente
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // Verifica periodicamente se a conexão foi restabelecida
+        window.addEventListener('online', () => {
+            document.querySelector('.offline-title').textContent = 'Conexão restabelecida!';
+            document.querySelector('.offline-message').textContent = 
+                'Sua conexão com a internet foi restabelecida. Clique no botão abaixo para continuar.';
+            
+            // Altera cor do botão para verde
+            const button = document.querySelector('.retry-button');
+            button.style.backgroundColor = '#28a745';
+        });
+    </script>
+</body>
+</html> 

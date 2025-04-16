@@ -1,57 +1,104 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Desbloqueio de Celular</title>
-    <link rel="stylesheet" href="./assets/css/styles.css">
-    <link rel="icon" type="image/png" href="./assets/images/favicon.png">
+    <title>Desbloqueio de Celulares - Admin</title>
+    <link rel="icon" href="assets/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <!-- Meta tags para PWA -->
+    <meta name="description" content="Portal de serviços de desbloqueio de celulares">
+    <meta name="theme-color" content="#007bff">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="logo">
-                <h1>Desbloqueio Celular</h1>
+    <div class="container">
+        <header>
+            <h1>Painel Administrativo - Desbloqueio de Celulares</h1>
+            <div id="user-info">
+                <span id="user-name"></span>
+                <button id="logout-btn" class="btn btn-danger">Sair</button>
             </div>
-            <nav>
-                <ul>
-                    <li><a href="index.html">Início</a></li>
-                    <li><a href="./pages/servicos.html">Serviços</a></li>
-                    <li><a href="./pages/contato.html">Contato</a></li>
-                    <li><a href="./pages/cliente/login.html" class="btn-login">Área do Cliente</a></li>
-                </ul>
-            </nav>
+        </header>
+
+        <div id="auth-container">
+            <div id="login-form" class="auth-form">
+                <h2>Login</h2>
+                <form id="form-login">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Senha</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </form>
+            </div>
         </div>
-    </header>
 
-    <main>
-        <section class="hero">
-            <div class="container">
-                <h2>Desbloqueie seu celular com facilidade e segurança!</h2>
-                <p>Oferecemos soluções para diversos tipos de bloqueios, incluindo BLACKLIST, ICLOUD e BYPASS.</p>
-                <a href="./pages/servicos.html" class="btn-primary">Ver serviços</a>
-            </div>
-        </section>
-
-        <section class="servicos-destaque">
-            <div class="container">
-                <h2>Serviços em destaque</h2>
-                <div id="servicos-favoritos" class="servicos-grid">
-                    <!-- Serviços favoritos serão carregados dinamicamente aqui -->
-                    <p class="loading">Carregando serviços...</p>
+        <div id="admin-container" class="hidden">
+            <section id="pedidos-pendentes">
+                <h2>Pedidos Pendentes</h2>
+                <div class="table-container">
+                    <table id="tabela-pendentes">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Modelo</th>
+                                <th>IMEI</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
-            </div>
-        </section>
-    </main>
+            </section>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2023 Portal de Desbloqueio de Celular. Todos os direitos reservados.</p>
+            <section id="historico-pedidos">
+                <h2>Histórico de Pedidos</h2>
+                <div class="table-container">
+                    <table id="tabela-historico">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Modelo</th>
+                                <th>IMEI</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
         </div>
-    </footer>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./assets/js/config.js"></script>
-    <script src="./assets/js/main.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script type="module" src="assets/js/config.js"></script>
+    <script type="module" src="assets/js/admin.js"></script>
+    
+    <!-- Registro do Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/serviceWorker.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Falha ao registrar Service Worker:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html> 

@@ -1,91 +1,312 @@
 // JavaScript principal para o painel administrativo
 
-// Aguarda o carregamento do DOM
-document.addEventListener('DOMContentLoaded', () => {
-    // Verifica se o usuário está autenticado e é admin
-    verificarAutenticacaoAdmin();
+// Inicialização do cliente Supabase
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Elementos do DOM
+const loginContainer = document.getElementById('loginContainer');
+const adminPanel = document.getElementById('adminPanel');
+const loginForm = document.getElementById('loginForm');
+const emailInput = document.getElementById('email');
+const senhaInput = document.getElementById('senha');
+const userName = document.getElementById('userName');
+const logoutBtn = document.getElementById('logoutBtn');
+const pendingOrdersTable = document.getElementById('pendingOrdersTable');
+const historyOrdersTable = document.getElementById('historyOrdersTable');
+const noPendingOrdersMessage = document.getElementById('noPendingOrdersMessage');
+const noHistoryOrdersMessage = document.getElementById('noHistoryOrdersMessage');
+const refreshPendingBtn = document.getElementById('refreshPendingBtn');
+const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+const mensagemToast = document.getElementById('mensagemToast');
+
+// Verifica se o usuário está autenticado ao carregar a página
+document.addEventListener('DOMContentLoaded', async () => {
+    const { data: { session } } = await supabase.auth.getSession();
     
-    // Configura o botão de logout
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
+    if (session) {
+        // Verifica se o usuário é um administrador
+        const { data: usuario, error } = await supabase
+            .from('usuarios')
+            .select('nome, role')
+            .eq('user_id', session.user.id)
+            .single();
+
+        if (error || !usuario || usuario.role !== 'admin') {
+            // Se não for administrador, fazer logout
+            await supabase.auth.signOut();
+            mostrarMensagem('Acesso negado. Apenas administradores podem acessar este painel.', 'error');
+            mostrarTelaLogin();
+            return;
+        }
+
+        // Se for administrador, continua
+        userName.textContent = usuario.nome;
+        mostrarTelaAdmin();
+        carregarPedidosPendentes();
+        carregarHistoricoPedidos();
+    } else {
+        mostrarTelaLogin();
     }
 });
 
-// Verifica se o usuário está autenticado e é admin
-async function verificarAutenticacaoAdmin() {
-    try {
-        const user = await verificarAutenticacao();
-        
-        // Se não estiver logado, redireciona para login
-        if (!user) {
-            redirecionarParaLogin();
-            return;
-        }
-        
-        // Verifica se é admin
-        const isAdmin = await verificarAdmin(user.id);
-        
-        if (!isAdmin) {
-            // Redireciona para painel do cliente se não for admin
-            window.location.href = '../cliente/painel.html';
-            return;
-        }
-        
-        // Carrega informações do usuário
-        await carregarInfoUsuario(user.id);
-        
-    } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
-        redirecionarParaLogin();
-    }
-}
-
-// Carrega informações do usuário
-async function carregarInfoUsuario(userId) {
-    try {
-        const { data, error } = await supabase
-            .from('usuarios')
-            .select('nome')
-            .eq('id', userId)
-            .single();
-            
-        if (error) throw error;
-        
-        // Atualiza o nome do usuário na UI
-        const adminNome = document.getElementById('admin-nome');
-        if (adminNome) {
-            adminNome.textContent = data.nome;
-        }
-        
-    } catch (error) {
-        console.error('Erro ao carregar informações do usuário:', error);
-    }
-}
-
-// Função para lidar com o logout
-async function handleLogout(event) {
-    event.preventDefault();
+// Login do usuário
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = emailInput.value;
+    const senha = senhaInput.value;
     
     try {
-        const { error } = await supabase.auth.signOut();
+        // Tenta fazer login
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password: senha
+        });
         
         if (error) throw error;
         
-        // Redireciona para a página de login
-        redirecionarParaLogin();
+        // Verifica se é um administrador
+        const { data: usuario, error: userError } = await supabase
+            .from('usuarios')
+            .select('nome, role')
+            .eq('user_id', data.user.id)
+            .single();
         
+        if (userError || !usuario) {
+            throw new Error('Erro ao carregar dados do usuário');
+        }
+        
+        if (usuario.role !== 'admin') {
+            await supabase.auth.signOut();
+            throw new Error('Acesso negado. Apenas administradores podem acessar este painel.');
+        }
+        
+        // Login bem-sucedido para administrador
+        userName.textContent = usuario.nome;
+        mostrarTelaAdmin();
+        carregarPedidosPendentes();
+        carregarHistoricoPedidos();
+        mostrarMensagem('Login realizado com sucesso!', 'success');
     } catch (error) {
-        console.error('Erro ao fazer logout:', error);
-        mostrarNotificacao('Erro ao fazer logout. Tente novamente.', 'error');
+        mostrarMensagem(error.message || 'Erro ao fazer login. Verifique suas credenciais.', 'error');
+    }
+});
+
+// Logout do usuário
+logoutBtn.addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    mostrarTelaLogin();
+    mostrarMensagem('Logout realizado com sucesso!', 'success');
+});
+
+// Atualizar pedidos pendentes
+refreshPendingBtn.addEventListener('click', () => {
+    carregarPedidosPendentes();
+});
+
+// Atualizar histórico de pedidos
+refreshHistoryBtn.addEventListener('click', () => {
+    carregarHistoricoPedidos();
+});
+
+// Funções auxiliares
+
+// Exibe a tela de login
+function mostrarTelaLogin() {
+    loginContainer.classList.remove('hidden');
+    adminPanel.classList.add('hidden');
+    // Limpa os campos de login
+    loginForm.reset();
+}
+
+// Exibe a tela de administrador
+function mostrarTelaAdmin() {
+    loginContainer.classList.add('hidden');
+    adminPanel.classList.remove('hidden');
+}
+
+// Exibe mensagens de toast
+function mostrarMensagem(mensagem, tipo = 'info') {
+    mensagemToast.textContent = mensagem;
+    mensagemToast.className = `mensagem-toast ${tipo}`;
+    mensagemToast.classList.add('show');
+    
+    setTimeout(() => {
+        mensagemToast.classList.remove('show');
+    }, 3000);
+}
+
+// Carrega pedidos pendentes
+async function carregarPedidosPendentes() {
+    try {
+        // Pedidos com status diferente de 'concluído' ou 'cancelado'
+        const { data: pedidos, error } = await supabase
+            .from('pedidos')
+            .select(`
+                id,
+                created_at,
+                marca,
+                modelo,
+                servico,
+                status,
+                usuarios (
+                    nome,
+                    email
+                )
+            `)
+            .not('status', 'in', '("concluido","cancelado")')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        // Limpa a tabela
+        const tbody = pendingOrdersTable.querySelector('tbody');
+        tbody.innerHTML = '';
+        
+        // Adiciona os pedidos à tabela ou mostra mensagem se não houver
+        if (pedidos && pedidos.length > 0) {
+            noPendingOrdersMessage.classList.add('hidden');
+            pendingOrdersTable.classList.remove('hidden');
+            
+            pedidos.forEach(pedido => {
+                const tr = document.createElement('tr');
+                
+                // Formata a data
+                const data = new Date(pedido.created_at);
+                const dataFormatada = data.toLocaleDateString('pt-BR') + ' ' + 
+                                      data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                
+                tr.innerHTML = `
+                    <td>${pedido.id}</td>
+                    <td>${pedido.usuarios.nome}<br><small>${pedido.usuarios.email}</small></td>
+                    <td>${pedido.marca} ${pedido.modelo}</td>
+                    <td>${pedido.servico}</td>
+                    <td>${dataFormatada}</td>
+                    <td><span class="badge status-${pedido.status}">${formatarStatus(pedido.status)}</span></td>
+                    <td>
+                        <div class="acao-btns">
+                            <button class="btn btn-sm btn-success" onclick="atualizarStatus(${pedido.id}, 'concluido')">
+                                <i class="fas fa-check"></i> Concluir
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="atualizarStatus(${pedido.id}, 'cancelado')">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button class="btn btn-sm btn-warning" onclick="atualizarStatus(${pedido.id}, 'em_processamento')">
+                                <i class="fas fa-cog"></i> Em Processamento
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        } else {
+            pendingOrdersTable.classList.add('hidden');
+            noPendingOrdersMessage.classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar pedidos pendentes:', error);
+        mostrarMensagem('Erro ao carregar pedidos pendentes. Tente novamente.', 'error');
     }
 }
 
-// Função para formatar status do pedido
+// Carrega histórico de pedidos
+async function carregarHistoricoPedidos() {
+    try {
+        // Pedidos com status 'concluído' ou 'cancelado'
+        const { data: pedidos, error } = await supabase
+            .from('pedidos')
+            .select(`
+                id,
+                created_at,
+                updated_at,
+                marca,
+                modelo,
+                servico,
+                status,
+                usuarios (
+                    nome,
+                    email
+                )
+            `)
+            .in('status', ['concluido', 'cancelado'])
+            .order('updated_at', { ascending: false })
+            .limit(50);
+        
+        if (error) throw error;
+        
+        // Limpa a tabela
+        const tbody = historyOrdersTable.querySelector('tbody');
+        tbody.innerHTML = '';
+        
+        // Adiciona os pedidos à tabela ou mostra mensagem se não houver
+        if (pedidos && pedidos.length > 0) {
+            noHistoryOrdersMessage.classList.add('hidden');
+            historyOrdersTable.classList.remove('hidden');
+            
+            pedidos.forEach(pedido => {
+                const tr = document.createElement('tr');
+                
+                // Formata as datas
+                const dataCriacao = new Date(pedido.created_at);
+                const dataCriacaoFormatada = dataCriacao.toLocaleDateString('pt-BR') + ' ' + 
+                                             dataCriacao.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                
+                const dataAtualizacao = new Date(pedido.updated_at);
+                const dataAtualizacaoFormatada = dataAtualizacao.toLocaleDateString('pt-BR') + ' ' + 
+                                                 dataAtualizacao.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                
+                tr.innerHTML = `
+                    <td>${pedido.id}</td>
+                    <td>${pedido.usuarios.nome}<br><small>${pedido.usuarios.email}</small></td>
+                    <td>${pedido.marca} ${pedido.modelo}</td>
+                    <td>${pedido.servico}</td>
+                    <td>${dataCriacaoFormatada}</td>
+                    <td><span class="badge status-${pedido.status}">${formatarStatus(pedido.status)}</span></td>
+                    <td>${dataAtualizacaoFormatada}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        } else {
+            historyOrdersTable.classList.add('hidden');
+            noHistoryOrdersMessage.classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar histórico de pedidos:', error);
+        mostrarMensagem('Erro ao carregar histórico de pedidos. Tente novamente.', 'error');
+    }
+}
+
+// Atualiza o status de um pedido
+async function atualizarStatus(pedidoId, novoStatus) {
+    try {
+        const { error } = await supabase
+            .from('pedidos')
+            .update({ 
+                status: novoStatus,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', pedidoId);
+        
+        if (error) throw error;
+        
+        mostrarMensagem(`Pedido #${pedidoId} atualizado para ${formatarStatus(novoStatus)}`, 'success');
+        
+        // Recarrega os pedidos
+        carregarPedidosPendentes();
+        carregarHistoricoPedidos();
+    } catch (error) {
+        console.error('Erro ao atualizar status:', error);
+        mostrarMensagem('Erro ao atualizar status do pedido. Tente novamente.', 'error');
+    }
+}
+
+// Formata o status para exibição
 function formatarStatus(status) {
     const statusMap = {
         'pendente': 'Pendente',
-        'em_andamento': 'Em Andamento',
+        'em_processamento': 'Em Processamento',
         'concluido': 'Concluído',
         'cancelado': 'Cancelado'
     };
@@ -93,70 +314,6 @@ function formatarStatus(status) {
     return statusMap[status] || status;
 }
 
-// Função para criar um badge de status
-function criarBadgeStatus(status) {
-    return `<span class="status-badge status-${status}">${formatarStatus(status)}</span>`;
-}
-
-// Função para truncar texto
-function truncarTexto(texto, maxLength = 50) {
-    if (!texto) return '';
-    
-    if (texto.length <= maxLength) return texto;
-    
-    return texto.substring(0, maxLength) + '...';
-}
-
-// Função genérica para carregar e renderizar tabela
-async function carregarTabela({
-    tableId,
-    queryFn,
-    renderRowFn,
-    emptyMessage = 'Nenhum registro encontrado.',
-    errorMessage = 'Erro ao carregar dados. Tente novamente mais tarde.'
-}) {
-    const tableBody = document.getElementById(tableId);
-    if (!tableBody) return;
-    
-    try {
-        const { data, error } = await queryFn();
-        
-        if (error) throw error;
-        
-        // Limpa a tabela
-        tableBody.innerHTML = '';
-        
-        // Se não houver dados
-        if (!data || data.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="100%" class="loading-data">${emptyMessage}</td></tr>`;
-            return;
-        }
-        
-        // Renderiza as linhas
-        data.forEach(item => {
-            const row = document.createElement('tr');
-            row.innerHTML = renderRowFn(item);
-            tableBody.appendChild(row);
-        });
-        
-    } catch (error) {
-        console.error('Erro ao carregar tabela:', error);
-        tableBody.innerHTML = `<tr><td colspan="100%" class="loading-data">${errorMessage}</td></tr>`;
-    }
-}
-
-// Função para confirmar ação
-function confirmarAcao(mensagem) {
-    return window.confirm(mensagem);
-}
-
-// Exporta funções que serão usadas por outras páginas
-window.adminUtils = {
-    carregarTabela,
-    formatarStatus,
-    criarBadgeStatus,
-    truncarTexto,
-    confirmarAcao,
-    formatarData,
-    formatarMoeda
-}; 
+// Expõe a função para o HTML
+window.atualizarStatus = atualizarStatus; 
+window.verDetalhesPedido = verDetalhesPedido; 

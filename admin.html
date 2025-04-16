@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo | Desbloqueio de Celulares</title>
+    <meta name="description" content="Painel administrativo para gerenciamento de pedidos de desbloqueio de celulares">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="assets/img/favicon.png" type="image/x-icon">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+    <!-- Seção de Login -->
+    <section id="login-section" class="login-container">
+        <div class="login-card">
+            <img src="assets/img/logo.png" alt="Logo Desbloqueio" class="login-logo">
+            <h1 class="login-title">Painel Administrativo</h1>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" class="form-control" placeholder="Seu e-mail" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" class="form-control" placeholder="Sua senha" required>
+                </div>
+                
+                <button type="submit" class="btn btn-block">Entrar</button>
+            </form>
+        </div>
+    </section>
+    
+    <!-- Painel Administrativo -->
+    <section id="admin-section" class="container hidden">
+        <header class="admin-header">
+            <h1 class="admin-title">Painel Administrativo</h1>
+            <div class="user-info">
+                <span class="user-name" id="user-name">Administrador</span>
+                <button id="btn-logout" class="btn btn-danger">Sair</button>
+            </div>
+        </header>
+        
+        <!-- Pedidos Pendentes -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Pedidos Pendentes</h2>
+                <button id="btn-atualizar-pendentes" class="btn btn-info">Atualizar</button>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table id="tabela-pendentes">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Modelo</th>
+                                <th>IMEI</th>
+                                <th>Data</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-pedidos-pendentes">
+                            <!-- Linhas da tabela serão inseridas via JavaScript -->
+                        </tbody>
+                    </table>
+                    <div id="mensagem-pendentes-vazia" class="empty-message hidden">
+                        Não há pedidos pendentes no momento.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Histórico de Pedidos -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Histórico de Pedidos</h2>
+                <button id="btn-atualizar-historico" class="btn btn-info">Atualizar</button>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table id="tabela-historico">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Modelo</th>
+                                <th>IMEI</th>
+                                <th>Data</th>
+                                <th>Concluído em</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-pedidos-historico">
+                            <!-- Linhas da tabela serão inseridas via JavaScript -->
+                        </tbody>
+                    </table>
+                    <div id="mensagem-historico-vazio" class="empty-message hidden">
+                        Não há histórico de pedidos concluídos ou cancelados.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Toast de Mensagens -->
+    <div id="mensagem-toast" class="mensagem-toast"></div>
+    
+    <!-- Scripts -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/admin.js"></script>
+</body>
+</html> 
